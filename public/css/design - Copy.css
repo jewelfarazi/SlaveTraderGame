@@ -1,0 +1,295 @@
+@import url('reset.css'); /* Start off with a complete CSS reset */
+
+/* Global Structure */
+/* 
+-------------------------------------------------------------- 
+General structure
+-------------------------------------------------------------- 
+*/
+
+body {
+	font-size: 14px;
+	font-family: Arial, Helvetica, sans-serif;
+	min-width: 768px;
+}
+
+/* Alignment */
+.left {
+	display: inline;
+	float: left;
+}
+
+.right {
+	display: inline;
+	float: right;
+}
+
+.center {
+	display: block;
+	margin: 0 auto;
+}
+
+/* END General structure */
+
+/*
+--------------------------------------------------------------
+Global styles
+-------------------------------------------------------------- 
+*/
+
+
+em {
+	font-style: italic;
+}
+
+strong {
+	font-weight: 600;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0;
+	padding: 0;
+	font-weight: bold;
+}
+
+h1 {
+	font-size: 30px;
+}
+
+h2 {
+	font-size: 28px;
+}
+
+h3 {
+	font-size: 24px;
+}
+
+h4 {
+	font-size: 20px;
+}
+
+h5 {
+	font-size: 18px;
+}
+
+h6 {
+	font-size: 16px;
+}
+
+p {
+	line-height: normal;
+	margin: 0 0 1em 0;
+}
+
+a:link,
+a:visited {
+	color: #fff;
+	text-decoration: none;
+}
+
+a:hover,
+a:focus {
+	color: #fff;
+}
+
+/* END Global Styles */
+
+
+/* Game Structure
+----------------------------------- /*/
+
+#wrapper {
+	width: 1000px;
+	margin: 50px auto;
+	border: 2px solid #000;
+}
+
+
+#left_col {}
+
+.sideContent, .sideContentR {
+	width: 14.5%;
+	border-right: 2px solid #000;
+	border-bottom: 2px solid #000;
+	position: relative;
+}
+
+.sideContent img {
+	height: 90%;
+	z-index: 1;
+}
+
+.side_title {
+	z-index: 2;
+	position: absolute;
+	right: 5px;
+}
+
+.l_count, .c_count, .cr_count, .g_count {
+	background-color: #418ffe;
+	width: 40px;
+	height: 40px;
+	position: absolute;
+	top: 40px;
+	right: 20px;
+	line-height: 1em;
+	text-align: center;
+	z-index: 3;
+	border-radius: 100%;
+}
+
+.c_count {
+	background-color: #58d44e;
+}
+
+.cr_count {
+	background-color: #bb7432;
+}
+
+.g_count {
+	background-color: #ae9c00;
+}
+
+.l_count h1, .c_count h1, .cr_count h1, .g_count h1 {
+	font-size: 28px;
+	line-height: 30px;
+	margin-top: 5px;
+}
+
+.sideContent h3 {
+	padding: 5px;
+	border-bottom: 2px solid #000;
+}
+
+.laborers, .cooks, .craftsmen, .animals, .gold {
+	padding: 5px;
+	border-bottom: 2px solid #000;
+	height: 100px;
+}
+
+.craftsmen img {
+	top: 20px;
+	height: 75%;
+}
+
+.gold img {
+	width: 45%;
+	height: 45%;
+	top: 30px;
+}
+.a_oxen, .a_horse, .a_zebra, .a_elephant {
+	width: 10px;
+	height: 26px;
+	padding-left: 35px;
+	padding-top: 3px;
+	position: absolute;
+}
+
+.a_oxen {
+	background: url('../assets/oxen.jpg') no-repeat top left;
+	top: 30px;
+}
+
+.a_horse {
+	background: url('../assets/horse.jpg') no-repeat top left;
+	top: 30px;
+	right: 5px;
+}
+
+.a_zebra {
+	background: url('../assets/zebra.jpg') no-repeat top left;
+	top: 70px;
+}
+
+.a_elephant {
+	background: url('../assets/elephant.jpg') no-repeat top left;
+	top: 70px;
+	right: 5px;
+}
+
+/* Right column */
+.sideContentR {
+	border-right: none;
+	border-left: 2px solid #000;
+	border-bottom: 2px solid #000;
+}
+
+.mail_box {
+	text-align: center;
+}
+
+.finish_turn {
+	border-top: 2px solid #000;
+	padding: 10px 0;
+}
+
+.finish_turn img {
+	width: 100%;
+	height: 100%;
+}
+
+/* player box */
+.player {
+	border-top: 2px solid #000;
+	position: relative;
+	height: 100px;
+}
+
+.pl_gold {
+	background-color: #ae9c00;
+	width: 35px;
+	height: 35px;
+	position: absolute;
+	top: 20px;
+	right: 5px;
+	font-size: 1.2em;
+	line-height: 1em;
+	z-index: 3;
+	border-radius: 100%;
+}
+
+.pl_gold h5 {
+	text-align: center;
+	margin-top: 10px;
+}
+
+
+/* Main content like JOBS, RETIREMENTS, AUCTIONS etc...
+--------------------------------------------------------- */
+#mainContent {
+	width: 71%;
+}
+
+#pl-jobs {
+	
+	border: 1px solid red;
+}
+
+#pl-jobs img {
+	width: 100%;
+	height: auto;
+}
+
+#news-header {
+	
+}
+
+#retirement {
+	width: 200px;
+	border: 1px solid red;
+}
+
+#news {
+	width: 300px;
+	border: 1px solid red;
+}
+
+#sl-uprising {
+	width: 200px;
+	border: 1px solid red;
+}

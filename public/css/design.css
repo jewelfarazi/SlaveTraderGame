@@ -1,0 +1,455 @@
+@import url('reset.css'); /* Start off with a complete CSS reset */
+
+/* Global Structure */
+/* 
+-------------------------------------------------------------- 
+General structure
+-------------------------------------------------------------- 
+*/
+
+body {
+	font-size: 14px;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Alignment */
+.left {
+	display: inline;
+	float: left;
+}
+
+.right {
+	display: inline;
+	float: right;
+}
+
+.center {
+	display: block;
+	margin: 0 auto;
+}
+
+/* END General structure */
+
+/*
+--------------------------------------------------------------
+Global styles
+-------------------------------------------------------------- 
+*/
+
+
+em {
+	font-style: italic;
+}
+
+strong {
+	font-weight: 600;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0;
+	padding: 0;
+	font-weight: bold;
+}
+
+h1 {
+	font-size: 30px;
+}
+
+h2 {
+	font-size: 28px;
+}
+
+h3 {
+	font-size: 24px;
+}
+
+h4 {
+	font-size: 20px;
+}
+
+h5 {
+	font-size: 18px;
+}
+
+h6 {
+	font-size: 16px;
+}
+
+p {
+	line-height: normal;
+	margin: 0 0 1em 0;
+}
+
+a:link,
+a:visited {
+	
+	
+}
+
+a:hover,
+a:focus {
+	text-decoration: none;
+}
+
+/* END Global Styles */
+
+
+/* Game Structure
+----------------------------------- /*/
+
+#wrapper {
+	display: block;
+	max-width: 1000px; /* max-width makes frame responsive */
+	margin: 50px auto;
+	border: 2px solid #000;
+}
+
+
+#left_col, #right_col { 
+	width: 14.5%;
+}
+
+.sideContent, .sideContentR {
+	
+	border-right: 2px solid #000;
+	border-bottom: 2px solid #000;
+}
+
+.sideContent img {
+	height: 90%;
+	position: absolute;
+	z-index: 1;
+}
+
+.side_title {
+	z-index: 2;
+	position: absolute;
+	right: 5px;
+}
+
+.l_count, .c_count, .cr_count, .g_count {
+	background-color: #418ffe;
+	width: 40px;
+	height: 40px;
+	position: absolute;
+	top: 40px;
+	right: 20px;
+	line-height: 1em;
+	text-align: center;
+	z-index: 3;
+	border-radius: 100%;
+}
+
+.c_count {
+	background-color: #58d44e;
+}
+
+.cr_count {
+	background-color: #bb7432;
+}
+
+.g_count {
+	background-color: #ae9c00;
+}
+
+.l_count h1, .c_count h1, .cr_count h1, .g_count h1 {
+	font-size: 28px;
+	line-height: 30px;
+	margin-top: 5px;
+}
+
+.sideContent h3 {
+	padding: 5px;
+	border-bottom: 2px solid #000;
+}
+
+.laborers, .cooks, .craftsmen, .animals, .gold {
+	padding: 5px;
+	position: relative;
+	border-bottom: 2px solid #000;
+	height: 100px;
+}
+
+.gold img {
+	width: 45%;
+	height: 45%;
+	top: 30px;
+}
+.a_oxen, .a_horse, .a_zebra, .a_elephant {
+	width: 10px;
+	height: 26px;
+	padding-left: 35px;
+	padding-top: 3px;
+	position: absolute;
+}
+
+.a_oxen {
+	background: url('../assets/oxen.jpg') no-repeat top left;
+	top: 30px;
+}
+
+.a_horse {
+	background: url('../assets/horse.jpg') no-repeat top left;
+	top: 30px;
+	right: 5px;
+}
+
+.a_zebra {
+	background: url('../assets/zebra.jpg') no-repeat top left;
+	top: 70px;
+}
+
+.a_elephant {
+	background: url('../assets/elephant.jpg') no-repeat top left;
+	top: 70px;
+	right: 5px;
+}
+
+/* Right column */
+.sideContentR {
+	border-right: none;
+	border-left: 2px solid #000;
+	border-bottom: 2px solid #000;
+}
+
+.mail_box {
+	text-align: center;
+	height: 140px;
+}
+
+.mail_box p {
+	margin: 0;
+	padding: 0;
+}
+
+.finish_turn {
+	border-top: 2px solid #000;
+	padding: 10px 0;
+	height: 65px;
+}
+
+.finish_turn img {
+	width: 100%;
+	height: auto;
+}
+
+/* player box */
+.player {
+	border-top: 2px solid #000;
+	position: relative;
+	padding: 5px;
+	height: 80px;
+}
+
+.pl_gold {
+	background-color: #ae9c00;
+	width: 35px;
+	height: 35px;
+	position: absolute;
+	top: 20px;
+	right: 5px;
+	font-size: 1.2em;
+	line-height: 1em;
+	z-index: 3;
+	border-radius: 100%;
+}
+
+.pl_gold h5 {
+	text-align: center;
+	margin-top: 10px;
+}
+
+
+/* Main content like JOBS, RETIREMENTS, AUCTIONS etc...
+--------------------------------------------------------- */
+#mainContent {
+	width: 71%;
+	text-align: center;
+}
+
+#pl-jobs {
+	margin: 5px;
+	
+}
+
+#pl-jobs img {
+	width: 100%;
+	height: auto;
+}
+
+#news-header {
+	
+}
+
+#rt-box {
+	width: 25.35211267605634%;
+
+}
+
+#news {
+	width: 49.29577464788732%;
+	text-align: center;
+}
+
+#sl-uprising {
+	width: 25.35211267605634%;	
+}
+
+#jobs {
+	margin-top: 5px;
+	margin-left: 5px;
+}
+
+.show {
+	display: block;
+}
+
+.hide {
+	display: none;
+}
+
+#jobs ul {
+	
+}
+
+#jobs ul li {
+	float: left;
+	width: 32.8125%;
+	height: auto;
+}
+
+.job-box {
+	margin: 10px;
+}
+
+.job-box img {
+	width: 100%;
+	height: auto;
+}
+
+/* Retirements */
+#pl-retirements {
+	margin: 20px 10px;
+	display: none;
+}
+
+#pl-retirements img {
+	width: 100%;
+	height: auto;
+}
+
+h1.rt-head {
+	text-transform: uppercase;
+	margin-bottom: 50px;
+}
+
+#retirements ul li {
+	float: left;
+	width: 33.33333333333333%;
+	height: auto;
+}
+
+.retirement {
+	margin: 10px;
+	position: relative;
+	cursor: pointer;
+}
+
+.retirement p {
+	margin: 0;
+	padding: 0;
+	text-align: left;
+	font-weight: bold;
+}
+
+p.rt-gold {
+	color: #aa9e2a;
+}
+
+.bought {
+	text-align: center;
+	font-size: 30px;
+	color: red;
+	display: block;
+	font-weight: bold;
+	text-transform: uppercase;
+	position: absolute;
+	z-index: 999;
+	right: 10px;
+	bottom: 40px;
+}
+
+.notification {
+	color: red;
+	font-size: 18px;
+	height: 40px;
+	margin-top: 10px;
+	display: none;
+}
+
+
+
+/* Auctions */
+#pl-auctions {
+	margin: 20px 10px;
+	display: none;
+}
+
+#pl-auctions img {
+	width: 100%;
+	height: auto;
+}
+
+#pl-auctions h1.auc-head {
+	text-transform: uppercase;
+	margin-bottom: 30px;
+}
+
+#pl-auctions h4 {
+	font-weight: normal;
+}
+
+.auc-timer {
+	width: 73px;
+	margin: 30px auto;
+	height: auto;
+	text-align: center;
+}
+
+#auction-list {
+	padding-left: 8px;
+}
+
+#auction-list ul li {
+	float: left;
+	width: 20%;
+	height: auto;
+}
+
+.auc-sl-box {
+	margin: 10px;
+}
+
+/* Responsive media queries 
+--------------------------------- */
+
+@media only screen and (max-width: 767px ) {
+	#wrapper {
+		width: 100%;
+		min-width: 765px;
+	}
+
+	.craftsmen img {
+		top: 20px;
+		height: 75%;
+	}
+
+	.player {
+		font-size: 12px;
+	}
+}

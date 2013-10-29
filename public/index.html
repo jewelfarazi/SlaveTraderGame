@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Slave Trader</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<!--STYLESHEETS-->
+	<link rel="stylesheet" type="text/css" href="css/design.css">
+
+	<!--JAVASCRIPTS-->
+
+	<script src="js/jquery-1.7.1.min.js"></script>
+	<script src="socket.io/socket.io.js"></script>
+
+	<script type="text/javascript">
+
+	$(document).ready(function() {
+
+		var player = {
+
+			// primary resources
+			pl_name : false,
+			pl_gold : 65,
+			pl_laborer : 2,
+			pl_cook : 3,
+			pl_craftsmen : 5,
+			pl_animals: {
+				pl_ox : 1,
+				pl_horse : 2,
+				pl_zebra : 3,
+				pl_elephant : 4
+			}
+
+		};
+
+		// get user name from url
+		function getParam( name )
+		{
+			name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		 	var regexS = "[\\?&]"+name+"=([^&#]*)";
+		 	var regex = new RegExp( regexS );
+		 	var results = regex.exec( window.location.href );
+		 	if( results == null )
+		  		return "";
+			else
+		 	return results[1];
+		}
+
+		var nickname = '';
+		nickname = getParam( 'player' );
+
+		// setting up the default values for player
+		$('.l_count h1').html(player.pl_laborer);
+		$('.c_count h1').html(player.pl_cook);
+		$('.cr_count h1').html(player.pl_craftsmen);
+		$('.g_count h1').html(player.pl_gold);
+		$('h6.a_oxen').html(player.pl_animals.pl_ox);
+		$('h6.a_horse').html(player.pl_animals.pl_horse);
+		$('h6.a_zebra').html(player.pl_animals.pl_zebra);
+		$('h6.a_elephant').html(player.pl_animals.pl_elephant);
+
+
+		// socket.io connection
+		var server = io.connect('http://localhost:3000');
+		
+		// joining to the game
+		server.on('check user', function(data) {
+
+			if(parseInt(data) < 6) {
+				//nickname = prompt("What is your nickname?");
+				if(nickname !== '' && nickname !== null) {
+					$('#welcome').html('Welcome ' + nickname + '!');
+				server.emit('join', {pl_name: nickname, pl_gold: player.pl_gold, pl_labor: player.pl_laborer, pl_cook: player.pl_cook, pl_craftsmen:player.pl_craftsmen, pl_ox: player.pl_animals.pl_ox, pl_horse: player.pl_animals.pl_horse, pl_zebra: player.pl_animals.pl_zebra, pl_elephant: player.pl_animals.pl_elephant});
+				} else {
+					alert('You don\'t have a name!');
+				} 
+				
+			} else {
+				alert('Game is full!');
+			}
+			
+		});
+		// list of joined player
+		server.on('player_list', function(data) {
+			$('.players_box').append('<div class="player"><h3>'+data.name+'</h3><ul><li><span id="'+data.name+'_l">'+data.labor+'</span> Laborers</li><li><span id="'+data.name+'_c">'+data.cook+'</span> Cooks</li><li><span id="'+data.name+'_cr">'+data.craftsmen+'</span> Craftsmen</li><li><span id="'+data.name+'_hr">'+data.horse+'</span> Horses</li></ul><div class="pl_gold"><h5><span id="'+data.name+'_g">'+data.gold+'</span></h5></div></div>');
+			console.log(data);
+		});
+		// after joining the game
+		server.on('player_list2', function(data) {
+			$('.players_box').append('<div class="player"><h3>'+data.pl_name+'</h3><ul><li><span id="'+data.pl_name+'_l">'+data.pl_labor+'</span> Laborers</li><li><span id="'+data.pl_name+'_c">'+data.pl_cook+'</span> Cooks</li><li><span id="'+data.pl_name+'_cr">'+data.pl_craftsmen+'</span> Craftsmen</li><li><span id="'+data.pl_name+'_hr">'+data.pl_horse+'</span> Horses</li></ul><div class="pl_gold"><h5><span id="'+data.pl_name+'_g">'+data.pl_gold+'</span></h5></div></div>');
+			console.log(data);
+		});
+
+		server.on('pl_stats', function(data) {
+			console.log(data);
+			$('#'+data.name+'_l').html(data.labor);
+			$('#'+data.name+'_c').html(data.cook);
+			$('#'+data.name+'_cr').html(data.craftsmen);
+			//$('#'+data.name+'_ox').html(data.oxen);
+			$('#'+data.name+'_hr').html(data.horse);
+			//$('#'+data.name+'_zb').html(data.zebra);
+			//$('#'+data.name+'_el').html(data.oxen);
+			$('#'+data.name+'_g').html(data.golds);
+		});
+
+		// Start players job codes
+		// sorting job lists
+		/*
+		var $ul = $('#job-list');
+		$('li', $ul).sort(function(){
+		   return ( Math.round( Math.random() ) - 0.5 )
+		}).appendTo($ul);
+		
+		$('#job-list li').addClass('hide');
+
+		for(var i = 103; i < 109; i ++) {
+			$('#job-list li').eq(i).removeClass('hide');
+		}
+		*/
+		// varibales for opening two job each day turn
+		var a = 99;
+		var b = 100;
+		// Finish turn 
+		$('#day_finish').click(function(){
+
+			if($('#jobs').hasClass('dayoff')) {
+				notif('Please wait for the next day!');
+			} else {
+				a -= 2;
+				b -= 2;
+
+				$('#job-list li').eq(b).removeClass('hide');
+				$('#job-list li').eq(a).removeClass('hide');
+
+				$('#jobs').addClass('dayoff');
+			}
+
+			return false;
+		});
+
+		function notif(text) {
+			$('.notification').html('<p>'+text+'</p>');
+			$('.notification').slideDown(function() {
+				$(this).delay(2000).slideUp(function() {
+					$(this).hide();
+				});
+			});
+		}
+
+		// job functions
+		$('#jobs li').bind('click', function() {
+
+			if($('#jobs').hasClass('dayoff')) {
+				notif('Please wait for the next day!');
+			} else {
+				var job_done = $(this).find('img').attr('alt');
+				alert(job_done);
+				switch(job_done) {
+					case "Job 2":
+						if(player.pl_laborer >= 1) {
+							player.pl_laborer -= 1;
+							player.pl_gold += 7;
+							$('.l_count h1').html(player.pl_laborer);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 3":
+						// Requires 3 Slaves
+						var slv3 = player.pl_laborer + player.pl_cook + player.pl_craftsmen;
+						
+						if(slv3 >= 3) {
+							//player.pl_laborer -= 1;
+							player.pl_gold += 10;
+							$('.l_count h1').html(player.pl_laborer);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 4":
+						if(player.pl_cook >= 3 && player.pl_laborer >= 1) {
+							player.pl_cook -= 3;
+							player.pl_laborer -= 1;
+							player.pl_gold += 17;
+							$('.c_count h1').html(player.pl_cook);
+							$('.l_count h1').html(player.pl_laborer);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 5":
+						if(player.pl_cook >= 5) {
+							player.pl_cook -= 5;
+							player.pl_gold += 25;
+							$('.l_count h1').html(player.pl_cook);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 6":
+						if(player.pl_cook >= 2 && player.pl_laborer >= 2) {
+							player.pl_cook -= 2;
+							player.pl_laborer -= 2;
+							player.pl_gold += 16;
+							$('.c_count h1').html(player.pl_cook);
+							$('.l_count h1').html(player.pl_laborer);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 7":
+						if(player.pl_laborer >= 3) {
+							player.pl_laborer -= 3;
+							player.pl_gold += 10;
+							$('.l_count h1').html(player.pl_laborer);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 8":
+						// Requires 3 Slaves
+						var slv3 = player.pl_laborer + player.pl_cook + player.pl_craftsmen;
+						
+						if(slv3 >= 3) {
+							player.pl_laborer -= 3;
+							player.pl_gold += 10;
+							$('.l_count h1').html(player.pl_laborer);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 9":
+						// Requires 3 Slaves
+						var slv3 = player.pl_laborer + player.pl_cook + player.pl_craftsmen;
+						
+						if(slv3 >= 3) {
+							player.pl_laborer -= 3;
+							player.pl_gold += 12;
+							$('.l_count h1').html(player.pl_laborer);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 10":
+						if(player.pl_animals.pl_ox >= 1 && player.pl_laborer >= 5 && player.pl_cook >= 1) {
+							player.pl_animals.pl_ox -= 1;
+							player.pl_laborer -= 5;
+							player.pl_cook -= 1;
+							player.pl_gold += 28;
+							$('.a_oxen h6').html(player.pl_animals.pl_ox);
+							$('.l_count h1').html(player.pl_laborer);
+							$('.c_count h1').html(player.pl_cook);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 11":
+						// need extra functionality
+						break;
+					case "Job 12":
+						if(player.pl_animals.pl_zebra >= 1) {
+							player.pl_animals.pl_zebra -= 1;
+							player.pl_gold += 10;
+							$('.a_zebra h6').html(player.pl_animals.pl_zebra);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 13":
+						// requires 5 slaves [more functionality]
+						break;
+					case "Job 14":
+						// requires 1 slaves [more functionality]
+						break;
+					case "Job 15":
+						if(player.pl_cook >= 4) {
+							player.pl_cook -= 4;
+							player.pl_gold += 17;
+							$('.c_count h1').html(player.pl_cook);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 16":
+						if(player.pl_craftsmen >= 1) {
+							player.pl_craftsmen -= 1;
+							player.pl_gold += 6;
+							$('.cr_count h1').html(player.pl_craftsmen);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 17":
+						if(player.pl_laborer >= 3 && player.pl_craftsmen >= 3 && player.pl_cook >= 1) {
+							player.pl_laborer -= 3;
+							player.pl_craftsmen -= 3;
+							player.pl_cook -= 1;
+							player.pl_gold += 28;
+							$('.l_count h1').html(player.pl_laborer);
+							$('.cr_count h1').html(player.pl_craftsmen);
+							$('.c_count h1').html(player.pl_cook);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 18":
+						// requires 2 slaves [more functionality]
+						break;
+					case "Job 19":
+						if(player.pl_laborer >= 3) {
+							player.pl_laborer -= 3;
+							player.pl_gold += 10;
+							$('.l_count h1').html(player.pl_laborer);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					case "Job 20":
+						// requires 2 slaves [more functionality]
+						break;
+					case "Job 21":
+						// requires 2 slaves [more functionality]
+						break;
+					case "Job 22":
+						if(player.pl_craftsmen >= 2) {
+							player.pl_craftsmen -= 2;
+							player.pl_gold += 10;
+							$('.cr_count h1').html(player.pl_craftsmen);
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('job done', {n:nickname, g:player.pl_gold, l:player.pl_laborer, c: player.pl_cook, cr: player.pl_craftsmen, ox: player.pl_animals.pl_ox, hr: player.pl_animals.pl_horse, zb: player.pl_animals.pl_zebra, el: player.pl_animals.pl_elephant});
+							notif("You have successfully done this job!");
+							$(this).delay(2000).fadeOut('slow');
+						} else {
+							notif("Sorry, your slaves is not enough to do this job!");
+						}
+						break;
+					default:
+						break;
+				}
+				
+				
+			}
+
+			return false;
+		});
+
+		
+		// End players job codes
+
+		// Start retirement codes
+		// if page is reloaded then show retirements that already purchased
+		server.on('show_retirement', function(data) {
+
+			$('#retirements li').eq(data.ret_no).find('.retirement').addClass('br');
+			$('#retirements li').eq(data.ret_no).find('.bought').text(data.name);
+
+		});
+
+		// buy retirements notifications
+		server.on('bought', function(data) {
+			//alert(data);
+			$('#retirements li').eq(data.ret_no).find('.retirement').addClass('br');
+			$('#retirements li').eq(data.ret_no).find('.bought').text(data.name);
+
+			//bought notif
+			switch(data.ret_no) {
+				case 0:
+					$('.notification').html('<p>' + data.name +' just bought Candle Factory!</p>');
+					$('.notification').slideDown(function() {
+						$(this).delay(2000).slideUp();
+					});
+					break;
+				case 1:
+					$('.notification').html('<p>' + data.name +' just bought Inn!</p>');
+					$('.notification').slideDown(function() {
+						$(this).delay(2000).slideUp();
+					});
+					break;
+				case 2:
+					$('.notification').html('<p>' + data.name +' just bought Chicken Farm!</p>');
+					$('.notification').slideDown(function() {
+						$(this).delay(2000).slideUp();
+					});
+					break;
+				case 3:
+					$('.notification').html('<p>' + data.name +' just bought 5 Star Restaurant!</p>');
+					$('.notification').slideDown(function() {
+						$(this).delay(2000).slideUp();
+					});
+					break;
+				case 4:
+					$('.notification').html('<p>' + data.name +' just bought Slum Lord!</p>');
+					$('.notification').slideDown(function() {
+						$(this).delay(2000).slideUp();
+					});
+					break;
+				case 5:
+					$('.notification').html('<p>' + data.name +' just bought Hotel!</p>');
+					$('.notification').slideDown(function() {
+						$(this).delay(2000).slideUp();
+					});
+					break;
+				case 6:
+					$('.notification').html('<p>' + data.name +' just bought 5 Star Restaurant Large!</p>');
+					$('.notification').slideDown(function() {
+						$(this).delay(2000).slideUp();
+					});
+					break;
+				case 7:
+					$('.notification').html('<p>' + data.name +' just bought Private Island!</p>');
+					$('.notification').slideDown(function() {
+						$(this).delay(2000).slideUp();
+					});
+					break;
+				default:
+					break;
+			}
+			
+		});
+
+
+		// Retirements functionalities
+		$('.retirement').bind('click', function(event) {
+			
+			switch($(this).parent('#retirements li').index()) {
+
+				case 0:
+					
+					if($(this).hasClass('br')) {
+						$('.notification').html('<p>This item already sold, please try another!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						
+					} else {
+						if(player.pl_gold >= 50) {
+							$(this).addClass('br');
+							$(this).find('.bought').text(userName);
+							$('.notification').html('<p>You just bought Candle Factory!</p>');
+							$('.notification').slideDown(function() {
+								$(this).delay(2000).slideUp();
+							});
+							player.pl_gold -= 50;
+							$('.g_count h1').html(player.pl_gold);
+							server.emit('buy', {name: userName, ret_no: 0});
+							console.log(player.pl_gold);
+						} else {
+							$('.notification').html('<p>Sorry, your golds is not enough to buy this retirement!</p>');
+							$('.notification').slideDown(function() {
+								$(this).delay(2000).slideUp();
+							});
+						}
+						
+					}
+
+					break;
+				case 1:
+					if($(this).hasClass('br')) {
+						$('.notification').html('<p>This item already sold, please try another!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						
+					} else {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Inn!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp(); 
+						});
+						server.emit('buy', {name: userName, ret_no: 1});
+					}
+					break;
+				case 2:
+					if($(this).hasClass('br')) {
+						$('.notification').html('<p>This item already sold, please try another!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						
+					} else {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Chicken Farm!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						server.emit('buy', {name: userName, ret_no: 2});
+					}
+					break;
+				case 3:
+					if($(this).hasClass('br')) {
+						$('.notification').html('<p>This item already sold, please try another!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						
+					} else {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought 5 Star Restaurant!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						server.emit('buy', {name: userName, ret_no: 3});
+					}
+					break;
+				case 4:
+					if($(this).hasClass('br')) {
+						$('.notification').html('<p>This item already sold, please try another!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						
+					} else {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Slum Lord!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						server.emit('buy', {name: userName, ret_no: 4});
+					}
+					break;
+				case 5:
+					if($(this).hasClass('br')) {
+						$('.notification').html('<p>This item already sold, please try another!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						
+					} else {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Hotel!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						server.emit('buy', {name: userName, ret_no: 5});
+					}
+					break;
+				case 6:
+					if($(this).hasClass('br')) {
+						$('.notification').html('<p>This item already sold, please try another!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						
+					} else {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought 5 Star Restaurant!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						server.emit('buy', {name: userName, ret_no: 6});
+					}
+					break;
+				case 7:
+					if($(this).hasClass('br')) {
+						$('.notification').html('<p>This item already sold, please try another!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						
+					} else {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Private Island!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						server.emit('buy', {name: userName, ret_no: 7});
+					}
+					break;
+				default:
+					alert('Please select something!');
+					break;
+			}
+
+			return false;
+		});
+		// End retirement codes
+
+		$('#j').click(function() {
+			$('#pl-jobs').fadeIn();
+
+			$('#pl-retirements, #pl-auctions').hide();
+
+			return false;
+		});
+
+		$('#r, #rt-box').click(function() {
+			$('#pl-retirements').fadeIn();
+
+			$('#pl-jobs, #pl-auctions').hide();
+
+			return false;
+		});
+
+		$('#a').click(function() {
+			$('#pl-auctions').fadeIn();
+
+			$('#pl-retirements, #pl-jobs').hide();
+
+			return false;
+		});
+			
+
+	});
+
+	</script>
+
+	<!--[if lt IE 9]>
+		<script src="js/html5.js" type="text/javascript"></script>
+	<![endif]-->
+
+</head>
+<body>
+
+	<div id="wrapper" class="group">
+		<div id="welcome">Welcome user!</div>
+		<a id="j" href="#">Jobs</a> 
+		<a id="r" href="#">Retirements</a>
+		<a id="a" href="#">Auctions</a>
+
+		<aside id="left_col" class="left">
+
+			<div class="sideContent">
+
+				<h3>My Slaves</h3>
+
+				<div class="laborers">
+
+					<img src="assets/Laborer.png" alt="laborers">
+					
+					<h6 class="side_title">Laborers</h6>
+
+					<div class="l_count"><h1>62</h1></div>
+
+				</div>
+
+				<div class="cooks">
+
+					<img src="assets/Cook.png" alt="Cooks">
+					
+					<h6 class="side_title">Cooks</h6>
+
+					<div  class="c_count"><h1>4</h1></div>
+
+				</div>
+
+				<div class="craftsmen">
+
+					<img src="assets/Craftsmen.png" alt="Craftsmen">
+					
+					<h6 class="side_title">Craftsmen</h6>
+
+					<div  class="cr_count"><h1>4</h1></div>
+
+				</div>
+
+				<div class="animals">
+
+					<h6 class="side_title">Animals</h6>
+
+					<h6 class="a_oxen">2</h6>
+					<h6 class="a_horse">2</h6>
+					<h6 class="a_zebra">1</h6>
+					<h6 class="a_elephant">0</h6>
+
+				</div>
+
+				<div class="gold">
+
+					<img src="assets/golds.jpg" height="50" alt="Golds">
+
+					<div  class="g_count"><h1>37</h1></div>
+
+				</div>
+
+			</div>
+
+		</aside><!-- END #left column -->
+
+		<div id="mainContent" class="left">
+
+			<div id="container">
+
+				<section id="pl-jobs">
+
+					<header id="news-header" class="group">
+
+						<div id="rt-box" class="left">
+							<a href="#"><img src="assets/retirement.jpg" alt="Retirement placeholder"></a>
+						</div>
+
+						<div id="news" class="left">
+
+							<hgroup>
+								<h1>The National Press</h1>
+								<h3>-Situations vacant-</h3>
+							</hgroup>
+
+						</div>
+
+						<div id="sl-uprising" class="left">
+							<a href="#"><img src="assets/sl_uprising.jpg" alt="Retirement placeholder"></a>
+						</div>
+
+					</header>
+
+					<div class="notification">
+						This is for notification!
+					</div>
+
+					<div id="jobs">
+						<ul id="job-list" class="group">
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/2J_1L_7G.png" alt="Job 2"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/3J_3S_10G.jpg" alt="Job 3"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/4J_1L_3C_17G.jpg" alt="Job 4"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/5J_5C_25g.jpg" alt="Job 5"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/6J_2L_2C_16G.jpg" alt="Job 6"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/7J_3L_10G.jpg" alt="Job 7"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/8J_3S_10G.jpg" alt="Job 8"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/9J_3S_12G.jpg" alt="Job 9"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/10J_1C_5L_1O.jpg" alt="Job 10"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/11J_3G-L_4G-C_4G_M.jpg" alt="Job 11"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/12J_1Z_10G.jpg" alt="Job 12"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/13J_5S_16G.jpg" alt="Job 13"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/14J_1S_4G.jpg" alt="Job 14"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/15J_4C_17G.jpg" alt="Job 15"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/16J_1M_6G.jpg" alt="Job 16"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/17J_1C_3M_3L_28G.jpg" alt="Job 17"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/18J_2S_7G.jpg" alt="Job 18"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/19J_3M_10G.jpg" alt="Job 19"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/20J_2S_6G.jpg" alt="Job 20"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/21J_6S_25G.jpg" alt="Job 21"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/22J_2M_10G.jpg" alt="Job 22"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/23J_1S_5G.jpg" alt="Job 23"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/24J_2L_8G.jpg" alt="Job 24"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/25J_2L_1M_14g.jpg" alt="Job 25"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/26J_4M_4L_2C_40G.jpg" alt="Job 26"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/27J_5S_17G.jpg" alt="Job 27"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/28J_1H_6G.jpg" alt="Job 28"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/29J_1M_4L_16G.jpg" alt="Job 29"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/30J_3M_14G.jpg" alt="Job 30"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/31J_1H_7G.jpg" alt="Job 31"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/32J_2H_12G.jpg" alt="Job 32"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/33J_4S_14G.jpg" alt="Job 33"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/34J_8G-E_5G-Z_4G-H_4G-O.jpg" alt="Job 34"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/35J_2O_5L_1C_30G.jpg" alt="Job 35"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/36J_10S_35G.jpg" alt="Job 36"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/37J_1-Z-H-O_5G.jpg" alt="Job 37"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/38J_3M_1C_20G.jpg" alt="Job 38"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/39J_2o-3C-5M-7L_80G.jpg" alt="Job 39"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/40J_1H_7G.jpg" alt="Job 40"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/41J_3M_15G.jpg" alt="Job 41"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/42J_4S_18G.jpg" alt="Job 42"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/43J_1C_2L_1H_17G.jpg" alt="Job 43"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/44J_1S_7G.jpg" alt="Job 44"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/45J_8S_28G.jpg" alt="Job 45"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/46J_1L_1M_8G.jpg" alt="Job 46"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/47J_2C_4L_25G.jpg" alt="Job 47"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/48J_3S_12G.jpg" alt="Job 48"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/49J_3C_13G.jpg" alt="Job 49"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/50J_1E_15G.jpg" alt="Job 50"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/51J_3C_12G.jpg" alt="Job 51"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/52_9G.jpg" alt="Job 52"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/53J_1M_5G.jpg" alt="Job 53"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/54J_2Z_11G.jpg" alt="Job 54"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/55J_1L_5G.jpg" alt="Job 55"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/56J_2S_7G.jpg" alt="Job 56"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/57J_1C_8G.jpg" alt="Job 57"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/58J_1L_1O_8G.jpg" alt="Job 58"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/59J_3L_1C_1M_17G.jpg" alt="Job 59"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/60J_1L_2M_1C_16G.jpg" alt="Job 60"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/61J_2S_6G.jpg" alt="Job 61"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/62J_1S_5G.jpg" alt="Job 62"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/63J_1M_3L_2C_25G.jpg" alt="Job 63"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/64J_1C_2L_2M_20G.jpg" alt="Job 64"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/65J_3L_2M_1O_1Z_30G.jpg" alt="Job 65"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/66J_1L_5G.jpg" alt="Job 66"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/67J_4C_16G.jpg" alt="Job 67"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/68J_2O_10G.jpg" alt="Job 68"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/69J_7G-O_7G-H_7G-Z_12G-E.jpg" alt="Job 69"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/70J_3H_16G.jpg" alt="Job 70"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/71J_4Z_25G.jpg" alt="Job 71"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/72J_2Z_2O_2H_9G.jpg" alt="Job 71"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/73J_1L_1C_1M_11G.jpg" alt="Job 73"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/74J_3L_1M_13G.jpg" alt="Job 74"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/75J_1H-2H_1H=5G_2H=12G.jpg" alt="Job 74"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/76J_3S_15G.jpg" alt="Job 76"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/77J_4L_12G.jpg" alt="Job 77"></a>
+								</div>
+							</li><li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/78J_4S_12G.jpg" alt="Job 78"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/79J_6L_22G.jpg" alt="Job 79"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/80J_1C-3L-1M_18G.jpg" alt="Job 80"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/81J_3L_12G.jpg" alt="Job 81"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/82J_4G.jpg" alt="Job 82"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/83J_2L_7G.jpg" alt="Job 83"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/84J_2C_9G.jpg" alt="Job 84"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/85J_4M_20G.jpg" alt="Job 85"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/86J_4C-4M-4L_50G.jpg" alt="Job 86"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/87J_1C-1M-5L-4O-40G.jpg" alt="Job 87"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/88J_1C-1L_8G.jpg" alt="Job 88"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/89J_1S_4G.jpg" alt="Job 89"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/90J_2M-2L-1C_23G.jpg" alt="Job 90"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/91J_1E_15G.jpg" alt="Job 91"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/92J_12G.jpg" alt="Job 92"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/93J_2L_10G.jpg" alt="Job 93"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/94J_3G.jpg" alt="Job 94"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/95J_2L-1C_10G.jpg" alt="Job 95"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/96J_4L-2M-2C_30G.jpg" alt="Job 96"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/97J_4L_13G.jpg" alt="Job 97"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/98J_1C-2L_12G.jpg" alt="Job 98"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/99J_1C-3L_15G.jpg" alt="Job 99"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/100J_1C_3G.jpg" alt="Job 100"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/101J_1M_5G.jpg" alt="Job 101"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/102J_3L-1M_14G.jpg" alt="Job 102"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/103J_1L_4G.jpg" alt="Job 103"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/104J_2S_7G.jpg" alt="Job 104"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/105J_2M_9G.jpg" alt="Job 105"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/106J_1S_4G.jpg" alt="Job 106"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/107J_3L_9G.jpg" alt="Job 107"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/108J_2M_9G.jpg" alt="Job 108"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/109J_1M_5G.jpg" alt="Job 109"></a>
+								</div>
+							</li>
+							<li>
+								<div class="job-box">
+									<a href="#"><img src="assets/jobs/110J_2C_9G.jpg" alt="Job 110"></a>
+								</div>
+							</li>			
+
+						</ul>
+
+					</div>
+
+				</section>
+
+				<section id="pl-retirements">
+
+					<header>
+						<h1 class="rt-head">Retirements</h1>
+					</header>
+
+					<div class="notification">
+						This is for notification!
+					</div>
+
+					<div id="retirements">
+
+						<ul class="group">
+
+							<li>
+								<div class="retirement">
+									<div class="bought">&nbsp;</div>
+									<img src="assets/retirements/2R_50g.png" alt="Retirement">
+
+									<p>Candle Factory</p>
+									<p class="rt-gold">50 Gold</p>
+								</div>
+							</li>
+							<li>
+								<div class="retirement">
+									<div class="bought">&nbsp;</div>
+									<img src="assets/retirements/3R_60g.png" alt="Retirement">
+
+									<p>Inn</p>
+									<p class="rt-gold">60 Gold</p>
+								</div>
+							</li>
+							<li>
+								<div class="retirement">
+									<div class="bought">&nbsp;</div>
+									<img src="assets/retirements/4R_70g.png" alt="Retirement">
+
+									<p>Chicken Farm</p>
+									<p class="rt-gold">70 Gold</p>
+								</div>
+							</li>
+							<li>
+								<div class="retirement">
+									<div class="bought">&nbsp;</div>
+									<img src="assets/retirements/5R_80g.png" alt="Retirement">
+
+									<p>5 Star Restaurant</p>
+									<p class="rt-gold">80 Gold</p>
+								</div>
+							</li>
+							<li>
+								<div class="retirement">
+									<div class="bought">&nbsp;</div>
+									<img src="assets/retirements/6R_90g.png" alt="Retirement">
+
+									<p>Slum Lord</p>
+									<p class="rt-gold">90 Gold</p>
+								</div>
+							</li>
+							<li>
+								<div class="retirement">
+									<div class="bought">&nbsp;</div>
+									<img src="assets/retirements/7R_100g.png" alt="Retirement">
+
+									<p>Hotel</p>
+									<p class="rt-gold">100 Gold</p>
+								</div>
+							</li>
+							<li>
+								<div class="retirement">
+									<div class="bought">&nbsp;</div>
+									<img src="assets/retirements/8R_110g.png" alt="Retirement">
+
+									<p>5 Star Restaurant</p>
+									<p class="rt-gold">110 Gold</p>
+								</div>
+							</li>
+							<li>
+								<div class="retirement">
+									<div class="bought">&nbsp;</div>
+									<img src="assets/retirements/9R_125g.png" alt="Retirement">
+
+									<p>Private Island</p>
+									<p class="rt-gold">125 Gold</p>
+								</div>
+							</li>
+
+						</ul>
+
+					</div>
+
+				</section>
+
+				<section id="pl-auctions">
+
+					<header>
+						<h1 class="auc-head">5 New Slaves!</h1>
+
+						<h4>Select one slave that you wish to buy</h4>
+					</header>
+
+					<div class="auc-timer">
+						<img src="images/time.jpg">
+					</div>
+
+					<div id="auction-list">
+
+						<ul class="group">
+							<li>
+								<div class="auc-sl-box">
+									<a href="#"><img src="assets/slaves/cook/55S_C_5G.png"></a>
+								</div>
+							</li>
+							<li>
+								<div class="auc-sl-box">
+									<a href="#"><img src="assets/slaves/craftsmen/83S_M_5G.png"></a>
+								</div>
+							</li>
+							<li>
+								<div class="auc-sl-box">
+									<a href="#"><img src="assets/slaves/laborer/2S_L_3G.png"></a>
+								</div>
+							</li>
+							<li>
+								<div class="auc-sl-box">
+									<a href="#"><img src="assets/slaves/laborer/5S_L_3G.png"></a>
+								</div>
+							</li>
+							<li>
+								<div class="auc-sl-box">
+									<a href="#"><img src="assets/slaves/laborer/28S_L_2G.png"></a>
+								</div>
+							</li>
+
+						</ul>
+
+					</div>
+
+				</section>
+
+			</div>
+
+		</div><!-- END #middle column -->
+
+		<aside id="right_col" class="right">
+
+			<div class="sideContentR">
+
+				<div class="mail_box">
+
+					<a href="#"><img src="assets/mailbox.jpg" alt="Mail Box"></a>
+
+					<p>Special Card</p>
+					<p>Special Card</p>
+					<p>Special Card</p>
+					<p>Special Card</p>
+
+				</div><!-- END mail box -->
+
+				<div class="finish_turn">
+					<a href="#" id="day_finish"><img src="assets/finish.jpg" alt="Finish for today!"></a>
+				</div><!-- END Finish turn -->
+
+				<div class="players_box">
+
+					
+
+				</div><!-- END players box -->
+
+			</div>
+
+		</aside><!-- END #right column -->
+
+	</div>
+
+</body>
+</html>
