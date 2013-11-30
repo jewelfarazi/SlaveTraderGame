@@ -23,8 +23,6 @@ var storeRetirement = function(data) {
 
 };
 
-
-
 node.sockets.on('connection', function(client) {
 
 	// check for maximum player
