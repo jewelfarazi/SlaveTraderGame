@@ -87,20 +87,6 @@ $(document).ready(function() {
 		$('#'+data.name+'_g').html(data.golds);
 	});
 
-	// Start players job codes
-	// sorting job lists
-	/*
-	var $ul = $('#job-list');
-	$('li', $ul).sort(function(){
-	   return ( Math.round( Math.random() ) - 0.5 )
-	}).appendTo($ul);
-	
-	$('#job-list li').addClass('hide');
-
-	for(var i = 103; i < 109; i ++) {
-		$('#job-list li').eq(i).removeClass('hide');
-	}
-	*/
 	// varibales for opening two job each day turn
 	var a = 99;
 	var b = 100;
@@ -138,7 +124,7 @@ $(document).ready(function() {
 			notif('Please wait for the next day!');
 		} else {
 			var job_done = $(this).find('img').attr('alt');
-			alert(job_done);
+			//alert(job_done);
 			switch(job_done) {
 				case "Job 2":
 					if(player.pl_laborer >= 1) {
@@ -382,9 +368,7 @@ $(document).ready(function() {
 		}
 
 		return false;
-	});
-
-	
+	});	
 	// End players job codes
 
 	// Start retirement codes
