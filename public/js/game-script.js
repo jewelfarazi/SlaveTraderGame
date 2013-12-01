@@ -83,10 +83,10 @@ $(document).ready(function() {
 		$('#'+data.name+'_l').html(data.labor);
 		$('#'+data.name+'_c').html(data.cook);
 		$('#'+data.name+'_cr').html(data.craftsmen);
-		//$('#'+data.name+'_ox').html(data.oxen);
+		$('#'+data.name+'_ox').html(data.oxen);
 		$('#'+data.name+'_hr').html(data.horse);
-		//$('#'+data.name+'_zb').html(data.zebra);
-		//$('#'+data.name+'_el').html(data.oxen);
+		$('#'+data.name+'_zb').html(data.zebra);
+		$('#'+data.name+'_el').html(data.oxen);
 		$('#'+data.name+'_g').html(data.golds);
 	});
 
@@ -491,13 +491,23 @@ $(document).ready(function() {
 					});
 					
 				} else {
-					$(this).addClass('br');
-					$(this).find('.bought').text(userName);
-					$('.notification').html('<p>You just bought Inn!</p>');
-					$('.notification').slideDown(function() {
-						$(this).delay(2000).slideUp(); 
-					});
-					server.emit('buy', {name: userName, ret_no: 1});
+					if(player.pl_gold >= 60) {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Inn!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						player.pl_gold -= 60;
+						$('.g_count h1').html(player.pl_gold);
+						server.emit('buy', {name: userName, ret_no: 1});
+						console.log(player.pl_gold);
+					} else {
+						$('.notification').html('<p>Sorry, your golds is not enough to buy this retirement!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+					}
 				}
 				break;
 			case 2:
@@ -508,13 +518,23 @@ $(document).ready(function() {
 					});
 					
 				} else {
-					$(this).addClass('br');
-					$(this).find('.bought').text(userName);
-					$('.notification').html('<p>You just bought Chicken Farm!</p>');
-					$('.notification').slideDown(function() {
-						$(this).delay(2000).slideUp();
-					});
-					server.emit('buy', {name: userName, ret_no: 2});
+					if(player.pl_gold >= 70) {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Chicken Farm!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						player.pl_gold -= 70;
+						$('.g_count h1').html(player.pl_gold);
+						server.emit('buy', {name: userName, ret_no: 2});
+						console.log(player.pl_gold);
+					} else {
+						$('.notification').html('<p>Sorry, your golds is not enough to buy this retirement!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+					}
 				}
 				break;
 			case 3:
@@ -525,13 +545,24 @@ $(document).ready(function() {
 					});
 					
 				} else {
-					$(this).addClass('br');
-					$(this).find('.bought').text(userName);
-					$('.notification').html('<p>You just bought 5 Star Restaurant!</p>');
-					$('.notification').slideDown(function() {
-						$(this).delay(2000).slideUp();
-					});
-					server.emit('buy', {name: userName, ret_no: 3});
+					if(player.pl_gold >= 80) {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought 5 Star Restaurant!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						player.pl_gold -= 80;
+						$('.g_count h1').html(player.pl_gold);
+						server.emit('buy', {name: userName, ret_no: 3});
+						console.log(player.pl_gold);
+					} else {
+						$('.notification').html('<p>Sorry, your golds is not enough to buy this retirement!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+					}
+				
 				}
 				break;
 			case 4:
@@ -542,13 +573,23 @@ $(document).ready(function() {
 					});
 					
 				} else {
-					$(this).addClass('br');
-					$(this).find('.bought').text(userName);
-					$('.notification').html('<p>You just bought Slum Lord!</p>');
-					$('.notification').slideDown(function() {
-						$(this).delay(2000).slideUp();
-					});
-					server.emit('buy', {name: userName, ret_no: 4});
+					if(player.pl_gold >= 90) {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Slum Lord!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						player.pl_gold -= 90;
+						$('.g_count h1').html(player.pl_gold);
+						server.emit('buy', {name: userName, ret_no: 4});
+						console.log(player.pl_gold);
+					} else {
+						$('.notification').html('<p>Sorry, your golds is not enough to buy this retirement!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+					}
 				}
 				break;
 			case 5:
@@ -559,13 +600,23 @@ $(document).ready(function() {
 					});
 					
 				} else {
-					$(this).addClass('br');
-					$(this).find('.bought').text(userName);
-					$('.notification').html('<p>You just bought Hotel!</p>');
-					$('.notification').slideDown(function() {
-						$(this).delay(2000).slideUp();
-					});
-					server.emit('buy', {name: userName, ret_no: 5});
+					if(player.pl_gold >= 100) {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Hotel!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						player.pl_gold -= 100;
+						$('.g_count h1').html(player.pl_gold);
+						server.emit('buy', {name: userName, ret_no: 5});
+						console.log(player.pl_gold);
+					} else {
+						$('.notification').html('<p>Sorry, your golds is not enough to buy this retirement!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+					}
 				}
 				break;
 			case 6:
@@ -576,13 +627,23 @@ $(document).ready(function() {
 					});
 					
 				} else {
-					$(this).addClass('br');
-					$(this).find('.bought').text(userName);
-					$('.notification').html('<p>You just bought 5 Star Restaurant!</p>');
-					$('.notification').slideDown(function() {
-						$(this).delay(2000).slideUp();
-					});
-					server.emit('buy', {name: userName, ret_no: 6});
+					if(player.pl_gold >= 110) {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought 5 Star Restaurant!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						player.pl_gold -= 110;
+						$('.g_count h1').html(player.pl_gold);
+						server.emit('buy', {name: userName, ret_no: 6});
+						console.log(player.pl_gold);
+					} else {
+						$('.notification').html('<p>Sorry, your golds is not enough to buy this retirement!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+					}
 				}
 				break;
 			case 7:
@@ -593,13 +654,23 @@ $(document).ready(function() {
 					});
 					
 				} else {
-					$(this).addClass('br');
-					$(this).find('.bought').text(userName);
-					$('.notification').html('<p>You just bought Private Island!</p>');
-					$('.notification').slideDown(function() {
-						$(this).delay(2000).slideUp();
-					});
-					server.emit('buy', {name: userName, ret_no: 7});
+					if(player.pl_gold >= 120) {
+						$(this).addClass('br');
+						$(this).find('.bought').text(userName);
+						$('.notification').html('<p>You just bought Private Island!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+						player.pl_gold -= 120;
+						$('.g_count h1').html(player.pl_gold);
+						server.emit('buy', {name: userName, ret_no: 7});
+						console.log(player.pl_gold);
+					} else {
+						$('.notification').html('<p>Sorry, your golds is not enough to buy this retirement!</p>');
+						$('.notification').slideDown(function() {
+							$(this).delay(2000).slideUp();
+						});
+					}
 				}
 				break;
 			default:
