@@ -30,8 +30,8 @@ $(document).ready(function() {
 	 	return results[1];
 	}
 
-	var nickname = '';
-	nickname = getParam( 'player' );
+	//var nickname = '';
+	//nickname = getParam( 'player' );
 
 	// setting up the default values for player
 	$('.l_count h1').html(player.pl_laborer);
@@ -45,7 +45,7 @@ $(document).ready(function() {
 
 
 	// socket.io connection
-	var server = io.connect('http://localhost:3000');
+	var server = io.connect('http://localhost');
 	
 	// joining to the game
 	server.on('check user', function(data) {
@@ -54,6 +54,8 @@ $(document).ready(function() {
 			nickname = prompt("What is your nickname?");
 			if(nickname !== '' && nickname !== null) {
 				$('#welcome').html('Welcome ' + nickname + '!');
+				player.pl_name = nickname;
+
 			server.emit('join', {pl_name: nickname, pl_gold: player.pl_gold, pl_labor: player.pl_laborer, pl_cook: player.pl_cook, pl_craftsmen:player.pl_craftsmen, pl_ox: player.pl_animals.pl_ox, pl_horse: player.pl_animals.pl_horse, pl_zebra: player.pl_animals.pl_zebra, pl_elephant: player.pl_animals.pl_elephant});
 			} else {
 				alert('You don\'t have a name!');
@@ -64,6 +66,7 @@ $(document).ready(function() {
 		}
 		
 	});
+	
 	// list of joined player
 	server.on('player_list', function(data) {
 		$('.players_box').append('<div class="player"><h3>'+data.name+'</h3><ul><li><span id="'+data.name+'_l">'+data.labor+'</span> Laborers</li><li><span id="'+data.name+'_c">'+data.cook+'</span> Cooks</li><li><span id="'+data.name+'_cr">'+data.craftsmen+'</span> Craftsmen</li><li><span id="'+data.name+'_hr">'+data.horse+'</span> Horses</li></ul><div class="pl_gold"><h5><span id="'+data.name+'_g">'+data.gold+'</span></h5></div></div>');
@@ -445,6 +448,8 @@ $(document).ready(function() {
 
 	// Retirements functionalities
 	$('.retirement').bind('click', function(event) {
+
+		var userName = player.pl_name;
 		
 		switch($(this).parent('#retirements li').index()) {
 
